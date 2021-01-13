@@ -107,7 +107,7 @@ Declaring Content Details
 
       .. code-block:: cmake
 
-      PLATFORMS Win32 - equals to if(${Win32}) ....
+      PLATFORMS WIN32 - equals to if(${WIN32}) ....
 
 Populating The Content
 """"""""""""""""""""""
