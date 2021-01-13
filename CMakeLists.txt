@@ -135,7 +135,7 @@ Populating The Content
 
 #]=======================================================================]
 
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.11)
 include (FetchContent)
 
 function (CmDaB_declare package)
@@ -148,15 +148,7 @@ function (CmDaB_declare package)
 			FULL_DOCS  "Details used by CmDaB for managing ${package}"
 		)
 
-		set (__cmdArgs)
-
-		foreach (__item IN LISTS ARGN)
-			string (APPEND __cmdArgs " [==[${__item}]==]")
-		endforeach()
-
-		cmake_language (EVAL CODE
-			"set_property(GLOBAL PROPERTY ${propertyName} ${__cmdArgs})"
-		)
+		set_property(GLOBAL PROPERTY ${propertyName} ${ARGN})
 	endif()
 endfunction()
 
@@ -175,10 +167,6 @@ function (CmDaB_install package)
 		string (APPEND __detailsQuoted " [==[${__item}]==]")
 	endforeach()
 
-	cmake_language(EVAL CODE "
-		FetchContent_Declare( ${package}
-			${__detailsQuoted}
-		)"
 	)
 
 	FetchContent_MakeAvailable (${package})
