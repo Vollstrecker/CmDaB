@@ -180,5 +180,3 @@ file (GLOB_RECURSE includes
 foreach (pkg IN LISTS includes)
 	include (${pkg})
 endforeach()
-
-CmDaB_install ("UPNP")
