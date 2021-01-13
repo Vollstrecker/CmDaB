@@ -152,21 +152,65 @@ function (CmDaB_declare package)
 	endif()
 endfunction()
 
-function (CmDaB_install package)
+#########################################################################
+# This function 
+#########################################################################
+function (CmDaB_get_package_info package)
 	set (propertyName "CmDaB_${package}_savedDetails")
 	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
 
 	if (NOT alreadyDefined)
-		message(FATAL_ERROR "Installation requested for not known package: ${contentName}")
+		message (FATAL_ERROR "Installation requested for not known package: ${package}")
 	endif()
 
 	get_property (contentDetails GLOBAL PROPERTY ${propertyName})
-	set (__detailsQuoted)
 
-	foreach (__item IN LISTS contentDetails)
-		string (APPEND __detailsQuoted " [==[${__item}]==]")
+	set (oVA GIT_REPOSITORY)
+	set (mVA PLATFORMS)
+
+	cmake_parse_arguments (CmDaB "" "${oVA}" "${mVA}" ${contentDetails})
+
+	if (CmDaB_UNPARSED_ARGUMENTS)
+		message (FATAL_ERROR "Unhandled Statement in description of package: ${package}: ${CmDaB_UNPARSED_ARGUMENTS}")
+	elseif (CmDaB_KEYWORDS_MISSING_VALUES)
+		message (FATAL_ERROR "Keyword without value given in description of package: ${package}: ${CmDaB_KEYWORDS_MISSING_VALUES}")
+	endif()
+
+	foreach (optName IN LISTS oVA mVA)
+		if (optName STREQUAL "GIT_REPOSITORY")
+			list (APPEND pkg_info "GIT_REPOSITORY")
+			list (APPEND pkg_info ${CmDaB_${optName}})
+		elseif (CmDaB_${optName})
+			set (CmDaB_${optName} ${CmDaB_${optName}} PARENT_SCOPE)
+		endif()
 	endforeach()
 
+	if (NOT pkg_info)
+		message (FATAL_ERROR "No download informations given in description of package: ${package}")
+	endif()
+
+	set (pkg_info ${pkg_info} PARENT_SCOPE)
+endfunction()
+
+function (CmDaB_install package)
+	CmDaB_get_package_info (${package} pkg_info)
+
+	if (CmDaB_PLATFORMS)
+		foreach (platform IN ITEMS ${CmDaB_PLATFORMS})
+			if (platform MATCHES "!(.*)")
+				if (${CMAKE_MATCH_1})
+					message (FATAL_ERROR "CmDaB requested package ${package} is limited to platforms: ${CmDaB_PLATFORMS}")
+				endif()
+			else()
+				if (NOT ${platform})
+					message (FATAL_ERROR "CmDaB requested package ${package} is limited to platforms: ${CmDaB_PLATFORMS}")
+				endif()
+			endif()
+		endforeach()
+	endif()
+
+	FetchContent_Declare (${package}
+		"${pkg_info}"
 	)
 
 	FetchContent_MakeAvailable (${package})
