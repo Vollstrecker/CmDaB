@@ -225,9 +225,8 @@ function (CmDaB_install package)
 	FetchContent_MakeAvailable (${package})
 endfunction()
 
-file (GLOB_RECURSE includes
-	${CMAKE_CURRENT_SOURCE_DIR}/modules
-	*.cmake
+file (GLOB includes
+	packages/*.cmake
 )
 
 foreach (pkg IN LISTS includes)
