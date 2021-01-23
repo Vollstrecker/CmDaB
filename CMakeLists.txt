@@ -194,6 +194,13 @@ function (CmDaB_get_package_info package)
 	set (pkg_info ${pkg_info} PARENT_SCOPE)
 endfunction()
 
+function (CmDaB_include_orig module)
+	message (STATUS "io1 - ${CMAKE_MODULE_PATH}")
+	list (REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_modules_path}")
+	message (STATUS "io2 - ${CMAKE_MODULE_PATH}")
+	include (${module})
+endfunction()
+
 function (CmDaB_install package)
 	CmDaB_get_package_info (${package} pkg_info)
 
