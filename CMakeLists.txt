@@ -152,9 +152,11 @@ function (CmDaB_declare package)
 	endif()
 endfunction()
 
-#########################################################################
-# This function 
-#########################################################################
+#################################################################################
+# This function parses all options for the given package                        #
+# The keywords regarding package downloading are given back in the var pkg_info #
+# CmDaB specific keywords as listed above are in vars named CmDaB_${KEYWORD}    #
+#################################################################################
 function (CmDaB_get_package_info package)
 	set (propertyName "CmDaB_${package}_savedDetails")
 	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
