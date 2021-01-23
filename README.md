@@ -6,8 +6,8 @@ run. Everything needed it built in one step and installed all together.
 
 In addition it assures you that you can always use the same name for the libs when linking.
 
-To be listed here, you need to provide <libname>::SHARED and <libame>::STATIC als aliases for your lib if it is just one that is built,
-and <package_name>::COMPONENT_SHARED and <package_name>::COMPONENT_STATIC if it's framework or similar, both in you CMakeLists.txt and
+To be listed here, you need to provide <libname>::Shared and <libame>::Static als aliases for your lib if it is just one that is built,
+and <package_name>::COMPONENT_Shared and <package_name>::COMPONENT_Static if it's framework or similar, both in you CMakeLists.txt and
 the installed package config files.
 
 Planned features:
