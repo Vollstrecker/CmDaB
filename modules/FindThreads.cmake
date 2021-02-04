@@ -7,6 +7,9 @@ if (NOT WIN32)
 	else ()
 		# The following two blocks replicate the original FindThreads
 		if (THREADS_HAVE_PTHREAD_ARG)
+			add_library (Threads::Shared INTERFACE IMPORTED)
+			add_library (Threads::Static INTERFACE IMPORTED)
+
 			set_property (TARGET Threads::Shared PROPERTY
 				INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -pthread>"
 											"$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>"
