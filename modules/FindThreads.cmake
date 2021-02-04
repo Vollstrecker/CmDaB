@@ -6,10 +6,10 @@ if (NOT WIN32)
 		add_library (Threads::Static ALIAS Threads::Threads)
 	else ()
 		# The following two blocks replicate the original FindThreads
-		if (THREADS_HAVE_PTHREAD_ARG)
-			add_library (Threads::Shared INTERFACE IMPORTED)
-			add_library (Threads::Static INTERFACE IMPORTED)
+		add_library (Threads::Shared INTERFACE IMPORTED)
+		add_library (Threads::Static INTERFACE IMPORTED)
 
+		if (THREADS_HAVE_PTHREAD_ARG)
 			set_property (TARGET Threads::Shared PROPERTY
 				INTERFACE_COMPILE_OPTIONS "$<$<COMPILE_LANGUAGE:CUDA>:SHELL:-Xcompiler -pthread>"
 											"$<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-pthread>"
