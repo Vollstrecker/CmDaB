@@ -220,7 +220,15 @@ function (CmDaB_install package)
 		"${pkg_info}"
 	)
 
-	FetchContent_MakeAvailable (${package})
+	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+		FetchContent_MakeAvailable (CmDaB)
+	else()
+		FetchContent_Populate (CmDaB)
+
+		add_subdirectory (${cmdab_SOURCE_DIR}
+			${cmdab_BINARY_DIR}
+		)
+	endif()
 endfunction()
 
 file (GLOB includes
