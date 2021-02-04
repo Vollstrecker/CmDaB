@@ -221,9 +221,9 @@ function (CmDaB_install package)
 	)
 
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-		FetchContent_MakeAvailable (CmDaB)
+		FetchContent_MakeAvailable (${package})
 	else()
-		FetchContent_Populate (CmDaB)
+		FetchContent_Populate (${package})
 
 		add_subdirectory (${cmdab_SOURCE_DIR}
 			${cmdab_BINARY_DIR}
