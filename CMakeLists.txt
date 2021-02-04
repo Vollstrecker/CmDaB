@@ -194,10 +194,10 @@ function (CmDaB_get_package_info package)
 	set (pkg_info ${pkg_info} PARENT_SCOPE)
 endfunction()
 
-function (CmDaB_include_orig module)
+macro (CmDaB_include_orig module)
 	list (REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_modules_path}")
 	include (${module})
-endfunction()
+endmacro()
 
 function (CmDaB_install package)
 	CmDaB_get_package_info (${package} pkg_info)
