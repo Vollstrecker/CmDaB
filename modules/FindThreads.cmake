@@ -32,6 +32,7 @@ if (NOT WIN32)
 				INTERFACE_LINK_LIBRARIES ${thread_location}
 			)
 		endif()
+	endif()
 else()
 	find_package (PTHREADS4W CONFIG)
 

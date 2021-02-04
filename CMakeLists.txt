@@ -231,7 +231,7 @@ foreach (pkg IN LISTS includes)
 	include (${pkg})
 endforeach()
 
-set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
+set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
 	list (PREPEND CMAKE_MODULE_PATH ${CmDaB_modules_path})
@@ -239,4 +239,5 @@ else()
 	set (CMAKE_MODULE_PATH ${CmDaB_modules_path} "${CMAKE_MODULE_PATH}")
 endif()
 
+set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
