@@ -199,7 +199,7 @@ macro (CmDaB_include_orig module)
 	include (${module})
 endmacro()
 
-function (CmDaB_install package)
+macro (CmDaB_install package)
 	CmDaB_get_package_info (${package} pkg_info)
 
 	if (CmDaB_PLATFORMS)
@@ -229,7 +229,7 @@ function (CmDaB_install package)
 			${cmdab_BINARY_DIR}
 		)
 	endif()
-endfunction()
+endmacro()
 
 file (GLOB includes
 	packages/*.cmake
