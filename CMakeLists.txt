@@ -224,9 +224,10 @@ macro (CmDaB_install package)
 		FetchContent_MakeAvailable (${package})
 	else()
 		FetchContent_Populate (${package})
+		string (TOLOWER ${package} package_name)
 
-		add_subdirectory (${cmdab_SOURCE_DIR}
-			${cmdab_BINARY_DIR}
+		add_subdirectory (${${package_name}_SOURCE_DIR}
+			${${package_name}_BINARY_DIR}
 		)
 	endif()
 endmacro()
