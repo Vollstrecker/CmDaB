@@ -40,3 +40,5 @@ else()
 		CmDaB_install (pthreads4w)
 	endif()
 endif()
+
+set (Threads_FOUND TRUE)
