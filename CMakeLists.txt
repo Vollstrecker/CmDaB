@@ -197,6 +197,7 @@ endfunction()
 macro (CmDaB_include_orig module)
 	list (REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_modules_path}")
 	include (${module})
+	set_module_path()
 endmacro()
 
 macro (CmDaB_install package)
@@ -232,6 +233,14 @@ macro (CmDaB_install package)
 	endif()
 endmacro()
 
+macro (set_module_path)
+	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
+		list (PREPEND CMAKE_MODULE_PATH ${CmDaB_modules_path})
+	else()
+		set (CMAKE_MODULE_PATH ${CmDaB_modules_path} "${CMAKE_MODULE_PATH}")
+	endif()
+endmacro()
+
 file (GLOB includes
 	packages/*.cmake
 )
@@ -241,12 +250,6 @@ foreach (pkg IN LISTS includes)
 endforeach()
 
 set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules)
-
-if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
-	list (PREPEND CMAKE_MODULE_PATH ${CmDaB_modules_path})
-else()
-	set (CMAKE_MODULE_PATH ${CmDaB_modules_path} "${CMAKE_MODULE_PATH}")
-endif()
-
+set_module_path()
 set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
