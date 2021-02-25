@@ -34,10 +34,23 @@ if (NOT WIN32)
 		endif()
 	endif()
 else()
-	find_package (PTHREADS4W CONFIG)
-
-	if (NOT PTHREADS4W_DIR)
+	if (PTHREADS4W_DIR STREQUAL "CmDaB_BUILD")
 		CmDaB_install (pthreads4w)
+	elseif (NOT PTHREADS4W_DIR)
+		find_package (PTHREADS4W CONFIG)
+
+		if (NOT PTHREADS4W_DIR)
+			message (STATUS "Downloading pthreads4win...")
+			CmDaB_install (pthreads4w)
+			message (STATUS "Downloading pthreads4win...Done")
+
+			set (PTHREADS4W_DIR "CmDaB_BUILD"
+				CACHE
+				STRING
+				"The directory containing a CMake configuration file for PTHREADS4W."
+				FORCE
+			)
+		endif()
 	endif()
 endif()
 

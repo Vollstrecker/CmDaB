@@ -1,6 +1,8 @@
-CmDaB_include_orig (FindGTest)
+if (NOT GTest_DIR)
+	CmDaB_include_orig (FindGTest)
+endif()
 
-if (GTEST_FOUND)
+if (GTEST_FOUND AND NOT GTest_DIR STREQUAL "CmDaB_BUILD")
 	if (CMAKE_VERSION VERSION_LESS 3.20)
 		if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
 			add_library (GTest::gtest ALIAS GTest::GTest)
@@ -17,12 +19,21 @@ if (GTEST_FOUND)
 		endif()
 	endif()
 else ()
-	CmDaB_install (googletest)
-	set (GTEST_FOUND TRUE)
-
-	if (GTEST_NEEDS_GMOCK)
-		add_library (GTest::gtest ALIAS gmock)
+	if (GTest_DIR STREQUAL "CmDaB_BUILD")
+		CmDaB_install (googletest)
 	else()
-		add_library (GTest::gtest ALIAS gtest)
+		message (STATUS "Downloading googletest...")
+		CmDaB_install (googletest)
+		message (STATUS "Downloading googletest...Done")
+		set (GTEST_FOUND TRUE)
+
+		set (GTest_DIR "CmDaB_BUILD"
+			CACHE
+			STRING
+			"The directory containing a CMake configuration file for PTHREADS4W."
+			FORCE
+		)
 	endif()
+
+	add_library (GTest::gtest ALIAS gmock)
 endif()
