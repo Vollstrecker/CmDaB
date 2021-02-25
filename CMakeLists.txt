@@ -166,7 +166,7 @@ function (CmDaB_get_package_info package)
 	endif()
 
 	get_property (contentDetails GLOBAL PROPERTY ${propertyName})
-
+	unset (pkg_info)
 	set (oVA GIT_REPOSITORY)
 	set (mVA PLATFORMS)
 
