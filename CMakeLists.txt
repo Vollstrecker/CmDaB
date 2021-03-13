@@ -179,12 +179,12 @@ function (CmDaB_get_package_info package)
 		message (FATAL_ERROR "Keyword without value given in description of package: ${package}: ${CmDaB_KEYWORDS_MISSING_VALUES}")
 	endif()
 
-	foreach (optName IN LISTS oVA mVA)
+	foreach (optName IN LISTS CmDaB_oVA CmDaB_mVA)
 		if (optName STREQUAL "GIT_REPOSITORY")
 			list (APPEND pkg_info "GIT_REPOSITORY")
 			list (APPEND pkg_info ${CmDaB_${optName}})
 		elseif (CmDaB_${optName})
-			set (CmDaB_${optName} ${CmDaB_${optName}} PARENT_SCOPE)
+			set (CmDaB_${package}_${optName} ${CmDaB_${optName}} PARENT_SCOPE)
 		endif()
 	endforeach()
 
@@ -192,7 +192,7 @@ function (CmDaB_get_package_info package)
 		message (FATAL_ERROR "No download informations given in description of package: ${package}")
 	endif()
 
-	set (pkg_info ${pkg_info} PARENT_SCOPE)
+	set (pkg_info_${package} ${pkg_info} PARENT_SCOPE)
 endfunction()
 
 macro (CmDaB_include_orig module)
@@ -202,10 +202,10 @@ macro (CmDaB_include_orig module)
 endmacro()
 
 macro (CmDaB_install package)
-	CmDaB_get_package_info (${package} pkg_info)
+	CmDaB_get_package_info (${package} pkg_info_${package})
 
 	if (CmDaB_PLATFORMS)
-		foreach (platform IN ITEMS ${CmDaB_PLATFORMS})
+		foreach (platform IN ITEMS ${CmDaB_${package}_PLATFORMS})
 			if (platform MATCHES "!(.*)")
 				if (${CMAKE_MATCH_1})
 					message (FATAL_ERROR "CmDaB requested package ${package} is limited to platforms: ${CmDaB_PLATFORMS}")
@@ -218,8 +218,35 @@ macro (CmDaB_install package)
 		endforeach()
 	endif()
 
+	set (old_testing_value ${BUILD_TESTING})
+
+	get_property (bt_helpstring CACHE BUILD_TESTING
+		PROPERTY HELPSTRING
+	)
+
+	if (NOT CmDaB_${package}_TESTS_ENABLE AND NOT CmDaB_${package}_TESTS_DISABLE)
+		set (CmDaB_${package}_TESTS_ENABLE "BUILD_TESTING")
+		set (CmDaB_${package}_TESTING_DEFAULT_OPTION TRUE)
+	endif()
+
+	CmDaB_Handle_Options (${package})
+
+	if (CmDaB_${package}_TESTING_DEFAULT_OPTION AND CmDaB_${package}_BUILD_TESTING)
+		set (BUILD_TESTING ON
+			CACHE BOOL
+			${bt_helpstring}
+			FORCE
+		)
+	elseif (NOT CmDaB_${package}_TESTING_DEFAULT_OPTION AND NOT CmDaB_${package}_BUILD_TESTING)
+		set (BUILD_TESTING OFF
+			CACHE BOOL
+			${bt_helpstring}
+			FORCE
+		)
+	endif()
+
 	FetchContent_Declare (${package}
-		"${pkg_info}"
+		"${pkg_info_${package}}"
 	)
 
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
@@ -232,6 +259,12 @@ macro (CmDaB_install package)
 			${${package_name}_BINARY_DIR}
 		)
 	endif()
+
+	set (BUILD_TESTING ${old_testing_value}
+		CACHE BOOL
+		${bt_helpstring}
+		FORCE
+	)
 endmacro()
 
 macro (set_module_path)
@@ -258,3 +291,36 @@ set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules)
 set_module_path()
 set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+include (cmake/options.cmake)
+
+if (NOT DEFINED CmDaB_Build_Tests_Old_State)
+	set (CmDaB_Build_Tests_Old_State ${CmDaB_Build_Tests}
+		CACHE INTERNAL
+		"Old State to see what has changed"
+		FORCE
+	)
+
+	set (CmDaB_Build_Tests_Old_State_CHANGED FALSE
+		CACHE INTERNAL
+		"To track if global state changed"
+		FORCE
+	)
+elseif (NOT ${CmDaB_Build_Tests} STREQUAL ${CmDaB_Build_Tests_Old_State})
+	set (CmDaB_Build_Tests_Old_State ${CmDaB_Build_Tests}
+		CACHE INTERNAL
+		"Old State to see what has changed"
+		FORCE
+	)
+
+	set (CmDaB_Build_Tests_Old_State_CHANGED TRUE
+		CACHE INTERNAL
+		"To track if global state changed"
+		FORCE
+	)
+else()
+	set (CmDaB_Build_Tests_Old_State_CHANGED FALSE
+		CACHE INTERNAL
+		"To track if global state changed"
+		FORCE
+	)
+endif()

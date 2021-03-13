@@ -36,4 +36,6 @@ else ()
 	endif()
 
 	add_library (GTest::gtest ALIAS gmock)
+	set (GTEST_FOUND TRUE)
+	include (GoogleTest)
 endif()
