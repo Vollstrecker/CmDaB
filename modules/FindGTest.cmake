@@ -1,4 +1,4 @@
-message (AUTHOR_WARNING "You shouldnt' use FindGTest anymore. They ship a config that provides gtest and gmock for you.")
+message (AUTHOR_WARNING "You shouldn't use FindGTest anymore. They ship a config that provides gtest and gmock for you.")
 
 if (NOT GTest_DIR)
 	find_package (GTest CONFIG)
