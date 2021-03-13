@@ -280,18 +280,10 @@ file (GLOB includes
 )
 
 option (CmDaB_Build_Tests "Build Tests of all downloaded packages" OFF)
-set (CmDaB_oVA GIT_REPOSITORY PARENT_SCOPE)
-set (CmDaB_mVA PLATFORMS TESTS_DISABLE TESTS_ENABLE GENERIC_OPTIONS_TRUE GENERIC_OPTIONS_FALSE PARENT_SCOPE)
 
 foreach (pkg IN LISTS includes)
 	include (${pkg})
 endforeach()
-
-set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules)
-set_module_path()
-set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
-include (cmake/options.cmake)
 
 if (NOT DEFINED CmDaB_Build_Tests_Old_State)
 	set (CmDaB_Build_Tests_Old_State ${CmDaB_Build_Tests}
@@ -324,3 +316,24 @@ else()
 		FORCE
 	)
 endif()
+
+set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules)
+set_module_path()
+set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+include (cmake/options.cmake)
+
+set (CmDaB_oVA
+	GIT_REPOSITORY # The Address of the git repo as you would use it in FetchContent
+	PARENT_SCOPE
+)
+
+set (CmDaB_mVA
+	ALIASES #Aliases that are needed but not set by the source of the package
+	PLATFORMS #The platforms where the package works or doesn't work
+	TESTS_DISABLE #List of options that need to be set ti disable tests, if the package defaults to build them
+	TESTS_ENABLE #List of options to enable tests in the package
+	GENERIC_OPTIONS_TRUE #List of generic options to enable features that are usually used
+	GENERIC_OPTIONS_FALSE #List of options that are usually not needed to be built
+	PARENT_SCOPE
+)
