@@ -265,6 +265,17 @@ macro (CmDaB_install package)
 		${bt_helpstring}
 		FORCE
 	)
+
+	if (CmDaB_${package}_ALIASES)
+		foreach (item IN ITEMS ${CmDaB_${package}_ALIASES})
+			if (alias)
+				add_library (${alias} ALIAS ${item})
+				unset (alias)
+			else()
+				set (alias ${item})
+			endif()
+		endforeach()
+	endif()
 endmacro()
 
 macro (set_module_path)
