@@ -158,6 +158,10 @@ endfunction()
 # CmDaB specific keywords as listed above are in vars named CmDaB_${KEYWORD}    #
 #################################################################################
 function (CmDaB_get_package_info package)
+	foreach (optName IN LISTS CmDaB_oVA CmDaB_mVA)
+		unset (CmDaB_${package}_${optName} PARENT_SCOPE)
+	endforeach()
+
 	set (propertyName "CmDaB_${package}_savedDetails")
 	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
 
@@ -167,10 +171,7 @@ function (CmDaB_get_package_info package)
 
 	get_property (contentDetails GLOBAL PROPERTY ${propertyName})
 	unset (pkg_info)
-	set (oVA GIT_REPOSITORY)
-	set (mVA PLATFORMS)
-
-	cmake_parse_arguments (CmDaB "" "${oVA}" "${mVA}" ${contentDetails})
+	cmake_parse_arguments (CmDaB "" "${CmDaB_oVA}" "${CmDaB_mVA}" ${contentDetails})
 
 	if (CmDaB_UNPARSED_ARGUMENTS)
 		message (FATAL_ERROR "Unhandled Statement in description of package: ${package}: ${CmDaB_UNPARSED_ARGUMENTS}")
@@ -244,6 +245,10 @@ endmacro()
 file (GLOB includes
 	packages/*.cmake
 )
+
+option (CmDaB_Build_Tests "Build Tests of all downloaded packages" OFF)
+set (CmDaB_oVA GIT_REPOSITORY PARENT_SCOPE)
+set (CmDaB_mVA PLATFORMS TESTS_DISABLE TESTS_ENABLE GENERIC_OPTIONS_TRUE GENERIC_OPTIONS_FALSE PARENT_SCOPE)
 
 foreach (pkg IN LISTS includes)
 	include (${pkg})
