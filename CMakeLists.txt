@@ -229,7 +229,11 @@ macro (CmDaB_install package)
 		set (CmDaB_${package}_TESTING_DEFAULT_OPTION TRUE)
 
 		if (NOT DEFINED CmDaB_${package}_BUILD_TESTING_Old_State)
-			set (CmDaB_${package}_BUILD_TESTING ${CmDaB_Build_Tests})
+			set (CmDaB_${package}_BUILD_TESTING ${CmDaB_Build_Tests}
+				CACHE BOOL
+				"BUILD_TESTING for ${package}"
+				FORCE
+			)
 		endif()
 	endif()
 
