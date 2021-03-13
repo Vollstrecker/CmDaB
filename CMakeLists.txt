@@ -232,17 +232,9 @@ macro (CmDaB_install package)
 	CmDaB_Handle_Options (${package})
 
 	if (CmDaB_${package}_TESTING_DEFAULT_OPTION AND CmDaB_${package}_BUILD_TESTING)
-		set (BUILD_TESTING ON
-			CACHE BOOL
-			${bt_helpstring}
-			FORCE
-		)
+		set (BUILD_TESTING ON)
 	elseif (NOT CmDaB_${package}_TESTING_DEFAULT_OPTION AND NOT CmDaB_${package}_BUILD_TESTING)
-		set (BUILD_TESTING OFF
-			CACHE BOOL
-			${bt_helpstring}
-			FORCE
-		)
+		set (BUILD_TESTING OFF)
 	endif()
 
 	FetchContent_Declare (${package}
