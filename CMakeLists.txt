@@ -249,6 +249,10 @@ macro (CmDaB_install package)
 		"${pkg_info_${package}}"
 	)
 
+	if (EXISTS ${CmDaB_BASE_DIR}/scripts/${package}_preinstall.cmake)
+		include (${CmDaB_BASE_DIR}/scripts/${package}_preinstall.cmake)
+	endif()
+
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
 		FetchContent_MakeAvailable (${package})
 	else()
@@ -328,9 +332,11 @@ else()
 	)
 endif()
 
-set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules)
+set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules)
 set_module_path()
-set (CmDaB_modules_path ${CMAKE_CURRENT_SOURCE_DIR}/modules PARENT_SCOPE)
+set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules PARENT_SCOPE)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
 include (cmake/options.cmake)
 
