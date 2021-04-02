@@ -5,6 +5,17 @@ if (NOT GTest_DIR)
 endif()
 
 if (NOT GTest_FOUND AND NOT GTest_DIR STREQUAL "CmDaB_BUILD")
+	if (MSVC)
+		if (${CMAKE_CXX_FLAGS_RELEASE} MATCHES "MT" AND NOT DEFINED gtest_force_shared_crt)
+			set (gtest_force_shared_crt ON
+				CACHE
+				BOOL
+				"PRESEEDED BY CmDaB"
+				FORCE
+			)
+		endif()
+	endif()
+
 	if (GTest_DIR STREQUAL "CmDaB_BUILD")
 		CmDaB_install (googletest)
 	else()
