@@ -264,11 +264,7 @@ macro (CmDaB_install package)
 		)
 	endif()
 
-	set (BUILD_TESTING ${old_testing_value}
-		CACHE BOOL
-		${bt_helpstring}
-		FORCE
-	)
+	set (BUILD_TESTING ${old_testing_value})
 
 	if (CmDaB_${package}_ALIASES)
 		foreach (item IN ITEMS ${CmDaB_${package}_ALIASES})
