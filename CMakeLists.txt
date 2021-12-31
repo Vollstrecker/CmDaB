@@ -183,6 +183,9 @@ function (CmDaB_get_package_info package)
 		if (optName STREQUAL "GIT_REPOSITORY")
 			list (APPEND pkg_info "GIT_REPOSITORY")
 			list (APPEND pkg_info ${CmDaB_${optName}})
+		elseif (optName STREQUAL "GIT_TAG")
+			list (APPEND pkg_info "GIT_TAG")
+			list (APPEND pkg_info ${CmDaB_${optName}})
 		elseif (CmDaB_${optName})
 			set (CmDaB_${package}_${optName} ${CmDaB_${optName}} PARENT_SCOPE)
 		endif()
@@ -337,16 +340,17 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
 include (cmake/options.cmake)
 
 set (CmDaB_oVA
-	GIT_REPOSITORY # The Address of the git repo as you would use it in FetchContent
+	GIT_REPOSITORY			# The Address of the git repo as you would use it in FetchContent
+	GIT_TAG					# The tag or branch name to checkout
 	PARENT_SCOPE
 )
 
 set (CmDaB_mVA
-	ALIASES #Aliases that are needed but not set by the source of the package
-	PLATFORMS #The platforms where the package works or doesn't work
-	TESTS_DISABLE #List of options that need to be set ti disable tests, if the package defaults to build them
-	TESTS_ENABLE #List of options to enable tests in the package
-	GENERIC_OPTIONS_TRUE #List of generic options to enable features that are usually used
-	GENERIC_OPTIONS_FALSE #List of options that are usually not needed to be built
+	ALIASES					#Aliases that are needed but not set by the source of the package
+	PLATFORMS				#The platforms where the package works or doesn't work
+	TESTS_DISABLE			#List of options that need to be set ti disable tests, if the package defaults to build them
+	TESTS_ENABLE			#List of options to enable tests in the package
+	GENERIC_OPTIONS_TRUE	#List of generic options to enable features that are usually used
+	GENERIC_OPTIONS_FALSE	#List of options that are usually not needed to be built
 	PARENT_SCOPE
 )
