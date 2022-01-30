@@ -165,7 +165,10 @@ include (FetchContent)
 
 function (CmDaB_declare package)
 	set (propertyName "CmDaB_${package}_savedDetails")
-	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
+
+	get_property (alreadyDefined GLOBAL
+		PROPERTY ${propertyName} DEFINED
+	)
 
 	if (NOT alreadyDefined)
 		define_property (GLOBAL PROPERTY ${propertyName}
@@ -173,7 +176,9 @@ function (CmDaB_declare package)
 			FULL_DOCS  "Details used by CmDaB for managing ${package}"
 		)
 
-		set_property(GLOBAL PROPERTY ${propertyName} ${ARGN})
+		set_property(GLOBAL
+			PROPERTY ${propertyName} ${ARGN}
+		)
 	endif()
 endfunction()
 
@@ -188,13 +193,19 @@ function (CmDaB_get_package_info package)
 	endforeach()
 
 	set (propertyName "CmDaB_${package}_savedDetails")
-	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
+
+	get_property (alreadyDefined GLOBAL
+		PROPERTY ${propertyName} DEFINED
+	)
 
 	if (NOT alreadyDefined)
 		message (FATAL_ERROR "Installation requested for not known package: ${package}")
 	endif()
 
-	get_property (contentDetails GLOBAL PROPERTY ${propertyName})
+	get_property (contentDetails GLOBAL
+		PROPERTY ${propertyName}
+	)
+
 	unset (pkg_info)
 	cmake_parse_arguments (CmDaB "" "${CmDaB_oVA}" "${CmDaB_mVA}" ${contentDetails})
 
