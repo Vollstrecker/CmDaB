@@ -299,7 +299,10 @@ macro (CmDaB_install package)
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
 		FetchContent_MakeAvailable (CmDaB_${package})
 	else()
+		if (NOT ${package_}_DOWNLOADED)
 			FetchContent_Populate (CmDaB_${package})
+		endif()
+
 		string (TOLOWER ${package} package_name)
 
 		add_subdirectory (CmDaB_${${package_name}_SOURCE_DIR}
