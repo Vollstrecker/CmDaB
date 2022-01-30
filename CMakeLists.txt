@@ -284,7 +284,7 @@ macro (CmDaB_install package)
 		set (BUILD_TESTING OFF)
 	endif()
 
-	FetchContent_Declare (${package}
+	FetchContent_Declare (CmDaB_${package}
 		"${pkg_info_${package}}"
 	)
 
@@ -297,13 +297,13 @@ macro (CmDaB_install package)
 	endif()
 
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-		FetchContent_MakeAvailable (${package})
+		FetchContent_MakeAvailable (CmDaB_${package})
 	else()
-		FetchContent_Populate (${package})
+			FetchContent_Populate (CmDaB_${package})
 		string (TOLOWER ${package} package_name)
 
-		add_subdirectory (${${package_name}_SOURCE_DIR}
-			${${package_name}_BINARY_DIR}
+		add_subdirectory (CmDaB_${${package_name}_SOURCE_DIR}
+			CmDaB_${${package_name}_BINARY_DIR}
 		)
 	endif()
 
