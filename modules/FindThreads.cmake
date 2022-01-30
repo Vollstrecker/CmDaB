@@ -35,13 +35,13 @@ if (NOT WIN32)
 	endif()
 else()
 	if (PTHREADS4W_DIR STREQUAL "CmDaB_BUILD")
-		CmDaB_install (pthreads4w)
+		CmDaB_install (PTHREADS4W)
 	elseif (NOT PTHREADS4W_DIR)
 		find_package (PTHREADS4W CONFIG)
 
 		if (NOT PTHREADS4W_DIR)
+			CmDaB_install (PTHREADS4W)
 			message (STATUS "Downloading pthreads4win...")
-			CmDaB_install (pthreads4w)
 			message (STATUS "Downloading pthreads4win...Done")
 
 			set (PTHREADS4W_DIR "CmDaB_BUILD"

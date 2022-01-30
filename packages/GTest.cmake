@@ -1,5 +1,5 @@
 CmDaB_declare (
-	googletest
+	GTest
 	GIT_REPOSITORY https://github.com/google/googletest.git
 	GIT_TAG main
 	TESTS_ENABLE gtest_build_tests gmock_build_tests

@@ -1,4 +1,4 @@
 CmDaB_declare (
-	pupnp
+	upnp
 	GIT_REPOSITORY https://github.com/pupnp/pupnp.git
 )
