@@ -9,3 +9,5 @@ CmDaB_declare (
 			GTest::gtest gtest
 			GTest::gtest_main gtest_main
 )
+
+CmDaB_set_config_path (GTest)

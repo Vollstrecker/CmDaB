@@ -240,6 +240,30 @@ macro (CmDaB_include_orig module)
 	CmDaB_set_module_path()
 endmacro()
 
+macro (CmDaB_handle_config_search package)
+	cmake_policy (SET CMP0074 NEW)
+
+	if (NOT ${package}_DIR OR (${package}_DIR STREQUAL ${CmDaB_configs_path}))
+		unset (${package}_DIR CACHE)
+
+		find_package (${package}
+			QUIET
+			NO_PACKAGE_ROOT_PATH
+		)
+
+		if (NOT ${package}_DIR)
+			CmDaB_install (${package})
+		endif()
+
+		set (${package}_ROOT ${CmDaB_configs_path}
+			CACHE
+			STRING
+			"The Location of CmDaB package-config"
+			FORCE
+		)
+	endif()
+endmacro()
+
 macro (CmDaB_install package)
 	CmDaB_get_package_info (${package} pkg_info_${package})
 
@@ -338,6 +362,15 @@ macro (CmDaB_install package)
 			endif()
 		endforeach()
 	endif()
+endmacro()
+
+macro (CmDaB_set_config_path package)
+	set (${package}_ROOT ${CmDaB_configs_path}
+		CACHE
+		STRING
+		"The Location of CmDaB package-config"
+		FORCE
+	)
 endmacro()
 
 macro (CmDaB_set_module_path)
