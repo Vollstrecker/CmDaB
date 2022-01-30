@@ -1,6 +1,7 @@
-if (NOT WIN32)
-	CmDaB_include_orig (FindThreads)
+cmake_policy (SET CMP0074 NEW)
 
+if (NOT MSVC)
+	CmDaB_include_orig (FindThreads)
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
 		add_library (Threads::Shared ALIAS Threads::Threads)
 		add_library (Threads::Static ALIAS Threads::Threads)
