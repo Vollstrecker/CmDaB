@@ -303,6 +303,13 @@ macro (CmDaB_install package)
 		)
 	endif()
 
+	set (${package}_FOUND TRUE
+		CACHE
+		STRING
+		"${package} will be build"
+		FORCE
+	)
+
 	set (BUILD_TESTING ${old_testing_value})
 
 	if (CmDaB_${package}_ALIASES)

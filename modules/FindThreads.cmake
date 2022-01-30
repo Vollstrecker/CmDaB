@@ -53,5 +53,3 @@ else()
 		endif()
 	endif()
 endif()
-
-set (Threads_FOUND TRUE)
