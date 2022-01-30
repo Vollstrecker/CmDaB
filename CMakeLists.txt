@@ -136,6 +136,31 @@ Populating The Content
 #]=======================================================================]
 
 cmake_minimum_required (VERSION 3.11)
+cmake_policy (SET CMP0047 NEW)
+set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules)
+set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules PARENT_SCOPE)
+set (CmDaB_configs_path ${CmDaB_BASE_DIR}/configs)
+set (CmDaB_configs_path ${CmDaB_BASE_DIR}/configs PARENT_SCOPE)
+include (cmake/options.cmake)
+
+set (CmDaB_oVA
+	GIT_REPOSITORY			# The Address of the git repo as you would use it in FetchContent
+	GIT_TAG					# The tag or branch name to checkout
+	PARENT_SCOPE
+)
+
+set (CmDaB_mVA
+	ALIASES					#Aliases that are needed but not set by the source of the package
+	PLATFORMS				#The platforms where the package works or doesn't work
+	TESTS_DISABLE			#List of options that need to be set ti disable tests, if the package defaults to build them
+	TESTS_ENABLE			#List of options to enable tests in the package
+	GENERIC_OPTIONS_TRUE	#List of generic options to enable features that are usually used
+	GENERIC_OPTIONS_FALSE	#List of options that are usually not needed to be built
+	PARENT_SCOPE
+)
+
 include (FetchContent)
 
 function (CmDaB_declare package)
@@ -331,26 +356,5 @@ else()
 	)
 endif()
 
-set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
-set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules)
 set_module_path()
-set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules PARENT_SCOPE)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
-include (cmake/options.cmake)
-
-set (CmDaB_oVA
-	GIT_REPOSITORY			# The Address of the git repo as you would use it in FetchContent
-	GIT_TAG					# The tag or branch name to checkout
-	PARENT_SCOPE
-)
-
-set (CmDaB_mVA
-	ALIASES					#Aliases that are needed but not set by the source of the package
-	PLATFORMS				#The platforms where the package works or doesn't work
-	TESTS_DISABLE			#List of options that need to be set ti disable tests, if the package defaults to build them
-	TESTS_ENABLE			#List of options to enable tests in the package
-	GENERIC_OPTIONS_TRUE	#List of generic options to enable features that are usually used
-	GENERIC_OPTIONS_FALSE	#List of options that are usually not needed to be built
-	PARENT_SCOPE
-)
