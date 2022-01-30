@@ -41,8 +41,6 @@ else()
 
 		if (NOT PTHREADS4W_DIR)
 			CmDaB_install (PTHREADS4W)
-			message (STATUS "Downloading pthreads4win...")
-			message (STATUS "Downloading pthreads4win...Done")
 
 			set (PTHREADS4W_DIR "CmDaB_BUILD"
 				CACHE

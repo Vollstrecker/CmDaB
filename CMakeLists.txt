@@ -292,6 +292,10 @@ macro (CmDaB_install package)
 		include (${CmDaB_BASE_DIR}/scripts/${package}_preinstall.cmake)
 	endif()
 
+	if (NOT ${package}_FIND_QUIETLY AND NOT CmDaB_${package}_DOWNLOADED)
+		message(STATUS "Downloading ${package} ...")
+	endif()
+
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
 		FetchContent_MakeAvailable (${package})
 	else()
@@ -302,6 +306,15 @@ macro (CmDaB_install package)
 			${${package_name}_BINARY_DIR}
 		)
 	endif()
+
+	set (CmDaB_${package}_DOWNLOADED TRUE
+		CACHE
+		BOOL
+		"${package} was already downloaded"
+		FORCE
+	)
+
+	mark_as_advanced (CmDaB_${package}_DOWNLOADED)
 
 	set (${package}_FOUND TRUE
 		CACHE

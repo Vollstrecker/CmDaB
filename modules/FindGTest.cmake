@@ -19,9 +19,7 @@ if (NOT GTest_FOUND AND NOT GTest_DIR STREQUAL "CmDaB_BUILD")
 	if (GTest_DIR STREQUAL "CmDaB_BUILD")
 		CmDaB_install (googletest)
 	else()
-		message (STATUS "Downloading googletest...")
 		CmDaB_install (googletest)
-		message (STATUS "Downloading googletest...Done")
 
 		set (GTest_DIR "CmDaB_BUILD"
 			CACHE
