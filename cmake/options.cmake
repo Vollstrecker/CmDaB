@@ -101,8 +101,6 @@ function (CmDaB_Handle_Options package)
 		endif()
 	endif()
 
-	unset (opt)
-
 	set (CmDaB_${package}_handled TRUE
 		CACHE INTERNAL
 		"To remeber that option for ${package} have been created"
