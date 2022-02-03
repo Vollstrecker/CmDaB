@@ -1,3 +1,11 @@
+#################################################################################
+# Function to initialize the known options of the given package                 #
+# If overall tests are enabled, enable all enable-tests and disable             #
+# all disable-tests.                                                            #
+# If overall tests are disabled, disable all enable-tests and enable            #
+# all disable-tests                                                             #
+# Otherwise enable all enable-tests and disable all disable-tests               #
+#################################################################################
 function (CmDaB_Initialize_Options package)
 	if (CmDaB_${package}_TESTS_ENABLE)
 		foreach (opt IN ITEMS ${CmDaB_${package}_TESTS_ENABLE})
@@ -48,6 +56,10 @@ function (CmDaB_Initialize_Options package)
 	endforeach()
 endfunction()
 
+#################################################################################
+# Checks if the global option was changed                                       #
+# If not, checks if the single option was changed                               #
+#################################################################################
 function (CmDaB_Handle_Options package)
 	if (${CmDaB_Build_Tests_Old_State_CHANGED})
 	# State of overall tests has changed, update all options accordingly.
@@ -95,6 +107,13 @@ function (CmDaB_Handle_Options package)
 	endif()
 endfunction()
 
+#################################################################################
+# Sets the name option initialized with the value and also sets an internal     #
+# cache-var to enable checking if the var has changed.                          #
+#                                                                               #
+# This is done twice, for the original option, and for the option prefixed      #
+# with CmDaB_ to enable the usage of the central config hierarchy               #
+#################################################################################
 function (CmDaB_Set_Option optName value)
 	option (CmDaB_${package}_${optName} "Mirror of ${optName}" ${value})
 
@@ -115,6 +134,10 @@ function (CmDaB_Set_Option optName value)
 	endif()
 endfunction()
 
+#################################################################################
+# Updates the var and it's controlvar and the corresponding central var         #
+# to a new value if needed                                                      #
+#################################################################################
 function (CmDaB_Update_Option optName value)
 	get_property (helpstring CACHE CmDaB_${package}_${optName}
 		PROPERTY HELPSTRING

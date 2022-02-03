@@ -234,12 +234,20 @@ function (CmDaB_get_package_info package)
 	set (pkg_info_${package} ${pkg_info} PARENT_SCOPE)
 endfunction()
 
+#################################################################################
+# Calls the systems find modules for the given package                          #
+# Only internal usage from our modules                                          #
+#################################################################################
 macro (CmDaB_include_orig module)
 	list (REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_modules_path}")
 	include (${module})
 	CmDaB_set_module_path()
 endmacro()
 
+#################################################################################
+# Helper to automate generic thing when packages are searched by config         #
+# Mostly it's the first and only line in our ${package}Config.cmake files       #
+#################################################################################
 macro (CmDaB_handle_config_search package)
 	cmake_policy (SET CMP0074 NEW)
 
@@ -368,6 +376,9 @@ macro (CmDaB_install package)
 	endif()
 endmacro()
 
+#################################################################################
+# Sets the path where our ${package}Config.cmake files are found               #
+#################################################################################
 macro (CmDaB_set_config_path package)
 	set (${package}_ROOT ${CmDaB_configs_path}
 		CACHE
@@ -377,6 +388,9 @@ macro (CmDaB_set_config_path package)
 	)
 endmacro()
 
+#################################################################################
+# Sets th path where our Find*.cmake files are found                            #
+#################################################################################
 macro (CmDaB_set_module_path)
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
 		list (PREPEND CMAKE_MODULE_PATH ${CmDaB_modules_path})
