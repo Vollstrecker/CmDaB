@@ -36,7 +36,6 @@ function (CmDaB_Initialize_Options package)
 			CmDaB_Set_Option (${opt} ON)
 		endif()
 	endforeach()
-		unset (opt)
 
 	foreach (opt IN ITEMS ${CmDaB_${package}_GENERIC_OPTIONS_FALSE})
 		if (DEFINED CmDaB_${package}_${optName})
@@ -49,7 +48,6 @@ function (CmDaB_Initialize_Options package)
 	endforeach()
 endfunction()
 
-		unset (opt)
 function (CmDaB_Handle_Options package)
 	if (${CmDaB_Build_Tests_Old_State_CHANGED})
 	# State of overall tests has changed, update all options accordingly.
