@@ -300,6 +300,10 @@ macro (CmDaB_install package)
 		endif()
 	endif()
 
+	if (NOT CmDaB_${package}_DOWNLOADED)
+		CmDaB_Initialize_Options (${package})
+	endif()
+
 	CmDaB_Handle_Options (${package})
 
 	if (CmDaB_${package}_TESTING_DEFAULT_OPTION AND CmDaB_${package}_BUILD_TESTING)
