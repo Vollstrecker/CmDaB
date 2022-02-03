@@ -100,12 +100,6 @@ function (CmDaB_Handle_Options package)
 			endforeach()
 		endif()
 	endif()
-
-	set (CmDaB_${package}_handled TRUE
-		CACHE INTERNAL
-		"To remeber that option for ${package} have been created"
-		FORCE
-	)
 endfunction()
 
 function (CmDaB_Set_Option optName value)
