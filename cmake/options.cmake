@@ -87,6 +87,11 @@ function (CmDaB_Handle_Options package)
 	# Check all options if they have changed.
 		if (CmDaB_${package}_TESTS_ENABLE OR CmDaB_${package}_TESTS_DISABLE)
 			foreach (opt IN ITEMS ${CmDaB_${package}_GENERIC_OPTIONS_FALSE} ${CmDaB_${package}_GENERIC_OPTIONS_TRUE} ${CmDaB_${package}_TESTS_DISABLE} ${CmDaB_${package}_TESTS_ENABLE})
+		foreach (opt IN ITEMS ${CmDaB_${package}_GENERIC_OPTIONS_FALSE}
+							  ${CmDaB_${package}_GENERIC_OPTIONS_TRUE}
+							  ${CmDaB_${package}_TESTS_DISABLE}
+							  ${CmDaB_${package}_TESTS_ENABLE}
+		)
 				if (NOT ${CmDaB_${package}_${opt}} STREQUAL ${CmDaB_${package}_${opt}_Old_State})
 					CmDaB_Update_Option (${opt} ${CmDaB_${package}_${opt}})
 				elseif (NOT ${${opt}} STREQUAL ${${opt}_Old_State})
