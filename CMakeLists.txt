@@ -136,11 +136,39 @@ Populating The Content
 #]=======================================================================]
 
 cmake_minimum_required (VERSION 3.11)
+cmake_policy (SET CMP0047 NEW)
+set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
+set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules)
+set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules PARENT_SCOPE)
+set (CmDaB_configs_path ${CmDaB_BASE_DIR}/configs)
+set (CmDaB_configs_path ${CmDaB_BASE_DIR}/configs PARENT_SCOPE)
+include (cmake/options.cmake)
+
+set (CmDaB_oVA
+	GIT_REPOSITORY			# The Address of the git repo as you would use it in FetchContent
+	GIT_TAG					# The tag or branch name to checkout
+	PARENT_SCOPE
+)
+
+set (CmDaB_mVA
+	ALIASES					#Aliases that are needed but not set by the source of the package
+	PLATFORMS				#The platforms where the package works or doesn't work
+	TESTS_DISABLE			#List of options that need to be set ti disable tests, if the package defaults to build them
+	TESTS_ENABLE			#List of options to enable tests in the package
+	GENERIC_OPTIONS_TRUE	#List of generic options to enable features that are usually used
+	GENERIC_OPTIONS_FALSE	#List of options that are usually not needed to be built
+	PARENT_SCOPE
+)
+
 include (FetchContent)
 
 function (CmDaB_declare package)
 	set (propertyName "CmDaB_${package}_savedDetails")
-	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
+
+	get_property (alreadyDefined GLOBAL
+		PROPERTY ${propertyName} DEFINED
+	)
 
 	if (NOT alreadyDefined)
 		define_property (GLOBAL PROPERTY ${propertyName}
@@ -148,7 +176,9 @@ function (CmDaB_declare package)
 			FULL_DOCS  "Details used by CmDaB for managing ${package}"
 		)
 
-		set_property(GLOBAL PROPERTY ${propertyName} ${ARGN})
+		set_property(GLOBAL
+			PROPERTY ${propertyName} ${ARGN}
+		)
 	endif()
 endfunction()
 
@@ -163,13 +193,19 @@ function (CmDaB_get_package_info package)
 	endforeach()
 
 	set (propertyName "CmDaB_${package}_savedDetails")
-	get_property (alreadyDefined GLOBAL PROPERTY ${propertyName} DEFINED)
+
+	get_property (alreadyDefined GLOBAL
+		PROPERTY ${propertyName} DEFINED
+	)
 
 	if (NOT alreadyDefined)
 		message (FATAL_ERROR "Installation requested for not known package: ${package}")
 	endif()
 
-	get_property (contentDetails GLOBAL PROPERTY ${propertyName})
+	get_property (contentDetails GLOBAL
+		PROPERTY ${propertyName}
+	)
+
 	unset (pkg_info)
 	cmake_parse_arguments (CmDaB "" "${CmDaB_oVA}" "${CmDaB_mVA}" ${contentDetails})
 
@@ -198,10 +234,42 @@ function (CmDaB_get_package_info package)
 	set (pkg_info_${package} ${pkg_info} PARENT_SCOPE)
 endfunction()
 
+#################################################################################
+# Calls the systems find modules for the given package                          #
+# Only internal usage from our modules                                          #
+#################################################################################
 macro (CmDaB_include_orig module)
 	list (REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_modules_path}")
 	include (${module})
-	set_module_path()
+	CmDaB_set_module_path()
+endmacro()
+
+#################################################################################
+# Helper to automate generic thing when packages are searched by config         #
+# Mostly it's the first and only line in our ${package}Config.cmake files       #
+#################################################################################
+macro (CmDaB_handle_config_search package)
+	cmake_policy (SET CMP0074 NEW)
+
+	if (NOT ${package}_DIR OR (${package}_DIR STREQUAL ${CmDaB_configs_path}))
+		unset (${package}_DIR CACHE)
+
+		find_package (${package}
+			QUIET
+			NO_PACKAGE_ROOT_PATH
+		)
+
+		if (NOT ${package}_DIR)
+			CmDaB_install (${package})
+		endif()
+
+		set (${package}_ROOT ${CmDaB_configs_path}
+			CACHE
+			STRING
+			"The Location of CmDaB package-config"
+			FORCE
+		)
+	endif()
 endmacro()
 
 macro (CmDaB_install package)
@@ -240,6 +308,10 @@ macro (CmDaB_install package)
 		endif()
 	endif()
 
+	if (NOT CmDaB_${package}_DOWNLOADED)
+		CmDaB_Initialize_Options (${package})
+	endif()
+
 	CmDaB_Handle_Options (${package})
 
 	if (CmDaB_${package}_TESTING_DEFAULT_OPTION AND CmDaB_${package}_BUILD_TESTING)
@@ -248,7 +320,7 @@ macro (CmDaB_install package)
 		set (BUILD_TESTING OFF)
 	endif()
 
-	FetchContent_Declare (${package}
+	FetchContent_Declare (CmDaB_${package}
 		"${pkg_info_${package}}"
 	)
 
@@ -256,16 +328,39 @@ macro (CmDaB_install package)
 		include (${CmDaB_BASE_DIR}/scripts/${package}_preinstall.cmake)
 	endif()
 
+	if (NOT ${package}_FIND_QUIETLY AND NOT CmDaB_${package}_DOWNLOADED)
+		message(STATUS "Downloading ${package} ...")
+	endif()
+
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-		FetchContent_MakeAvailable (${package})
+		FetchContent_MakeAvailable (CmDaB_${package})
 	else()
-		FetchContent_Populate (${package})
+		if (NOT ${package_}_DOWNLOADED)
+			FetchContent_Populate (CmDaB_${package})
+		endif()
+
 		string (TOLOWER ${package} package_name)
 
-		add_subdirectory (${${package_name}_SOURCE_DIR}
-			${${package_name}_BINARY_DIR}
+		add_subdirectory (CmDaB_${${package_name}_SOURCE_DIR}
+			CmDaB_${${package_name}_BINARY_DIR}
 		)
 	endif()
+
+	set (CmDaB_${package}_DOWNLOADED TRUE
+		CACHE
+		BOOL
+		"${package} was already downloaded"
+		FORCE
+	)
+
+	mark_as_advanced (CmDaB_${package}_DOWNLOADED)
+
+	set (${package}_FOUND TRUE
+		CACHE
+		STRING
+		"${package} will be build"
+		FORCE
+	)
 
 	set (BUILD_TESTING ${old_testing_value})
 
@@ -281,7 +376,22 @@ macro (CmDaB_install package)
 	endif()
 endmacro()
 
-macro (set_module_path)
+#################################################################################
+# Sets the path where our ${package}Config.cmake files are found               #
+#################################################################################
+macro (CmDaB_set_config_path package)
+	set (${package}_ROOT ${CmDaB_configs_path}
+		CACHE
+		STRING
+		"The Location of CmDaB package-config"
+		FORCE
+	)
+endmacro()
+
+#################################################################################
+# Sets th path where our Find*.cmake files are found                            #
+#################################################################################
+macro (CmDaB_set_module_path)
 	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
 		list (PREPEND CMAKE_MODULE_PATH ${CmDaB_modules_path})
 	else()
@@ -331,26 +441,5 @@ else()
 	)
 endif()
 
-set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
-set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules)
-set_module_path()
-set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules PARENT_SCOPE)
+CmDaB_set_module_path()
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
-include (cmake/options.cmake)
-
-set (CmDaB_oVA
-	GIT_REPOSITORY			# The Address of the git repo as you would use it in FetchContent
-	GIT_TAG					# The tag or branch name to checkout
-	PARENT_SCOPE
-)
-
-set (CmDaB_mVA
-	ALIASES					#Aliases that are needed but not set by the source of the package
-	PLATFORMS				#The platforms where the package works or doesn't work
-	TESTS_DISABLE			#List of options that need to be set ti disable tests, if the package defaults to build them
-	TESTS_ENABLE			#List of options to enable tests in the package
-	GENERIC_OPTIONS_TRUE	#List of generic options to enable features that are usually used
-	GENERIC_OPTIONS_FALSE	#List of options that are usually not needed to be built
-	PARENT_SCOPE
-)
