@@ -153,19 +153,23 @@ function (CmDaB_Update_Option optName value)
 	)
 endfunction()
 
-function (option)
-	list (GET ARGN "0" opt)
-	list (GET ARGN "1" helpstring)
+if (COMMAND _option)
+	message (FATAL_ERROR "Someone already redifined option(), 2 redefinitions are not possible.")
+else()
+	function (option)
+		list (GET ARGN "0" opt)
+		list (GET ARGN "1" helpstring)
 
-	get_property (old_helpstring CACHE ${opt}
-		PROPERTY HELPSTRING
-	)
-
-	if (old_helpstring STREQUAL "CmDaB_Preseed" AND NOT helpstring STREQUAL "ON" AND NOT helpstring STREQUAL "OFF")
-		set_property (CACHE ${opt}
-			PROPERTY HELPSTRING ${helpstring}
+		get_property (old_helpstring CACHE ${opt}
+			PROPERTY HELPSTRING
 		)
-	else()
-		_option (${ARGN})
-	endif()
-endfunction()
+
+		if (old_helpstring STREQUAL "CmDaB_Preseed" AND NOT helpstring STREQUAL "ON" AND NOT helpstring STREQUAL "OFF")
+			set_property (CACHE ${opt}
+				PROPERTY HELPSTRING ${helpstring}
+			)
+		else()
+			_option (${ARGN})
+		endif()
+	endfunction()
+endif()
