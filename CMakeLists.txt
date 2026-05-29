@@ -1,445 +1,357 @@
 # This file is part of the CmDab Project.
 #
-# Copyright (c) 2021 Vollstrecker (werner@vollstreckernet.de)
+# Copyright (c) 2021-2026 Vollstrecker (github@vollstreckernet.de)
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 3as published by
-# the Free Software Foundation; of the License
+# Licensed under the MIT License. See LICENSE file in the project root for
+# full license information.
+# -----------------------------------------------------------------------------
+
+# =============================================================================
+# CmDaB – Configure-time Dependency Bootstrapper
+# =============================================================================
+#
+# This file provides the core functions used by CmDaB to resolve dependencies
+# during the CMake configure phase.
+#
+# CmDaB integrates with CMake via find_package and augments the resolution
+# process without replacing it.
+#
+# -----------------------------------------------------------------------------
+# Public Entry Points
+# -----------------------------------------------------------------------------
+#
+#   CmDaB_declare(<Package> ...)
+#
+#     Declares a package and registers all required metadata.
+#
+#     Arguments:
+#       GIT_REPOSITORY   Source repository for FetchContent
+#       GIT_TAG          Revision / branch / tag
+#
+#       OPTIONS          Key/value pairs applied as cache defaults
+#       TEST_OPTIONS     List of test-related cache variables
+#       ALIASES          Pairs mapping canonical → upstream targets
+#       STATIC_SUFFIX    Suffix for generic static targets (e.g. "static")
+#       PLATFORMS        List of allowed platform conditions
+#
+#     This call also generates the corresponding Config and Find wrappers.
 #
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, check
-# https://github.com/Vollstrecker/CmDaB/blob/main/LICENSE
-
-#[=======================================================================[.rst:
-CmDaB
-------------------
-
-.. only:: html
-
-  .. contents::
-
-Overview
-^^^^^^^^
-
-This module enables you to download packages your sourcecode depends on
-while configure-stage of your source. Configuration of the downloaded
-packages is done immediately after download. Libs to link against are built
-installed along your own project.
-
-You can use any method supported by the :module:`ExternalProject` module.
-
-To use this package in your code, simply include the CmDaB.cmake file
-from the root of the repository. It will check for installed git on your system,
-and add an option called DOWNLOAD_AND_BUILD_DEPS. You can check if the user
-activates this one and then just call CmDaB_install when your checks report a
-missing dependency.
-
-The following shows a typical example:
-
-.. code-block:: cmake
-
-  include CmDaB.cmake
-  if (NOT LIBUPNP_FOUND AND DOWNLOAD_AND_BUILD_DEPS)
-    CmDaB_install ("UPNP")
-  endif()
-
-For a list of useable packages look into module-dir of this package
-command like so:
-
-Commands
-^^^^^^^^
-
-Declaring Content Details
-"""""""""""""""""""""""""
-
-.. command:: CmDaB_declare
-
-  .. code-block:: cmake
-
-    CmDaB_declare (<name> <contentOptions>...)
-
-  The ``CmDaB_declare()`` function records the options that describe
-  how to populate the specified content, but if such details have already
-  been recorded earlier in this project (regardless of where in the project
-  hierarchy), this and all later calls for the same content ``<name>`` are
-  ignored.  This "first to record, wins" approach is what allows hierarchical
-  projects to have parent projects override content details of child projects.
-
-  This basically a reimplementation of :command:`FetchContent_Declare` it is
-  mainly used in the package-definitions in the modules-dir. You can use it in
-  your code to define packages that are not included here, although FetchContent
-  would do the same for you in this case.
-
-  The content ``<name>`` can be any string without spaces, but good practice
-  would be to use only letters, numbers and underscores.  The name will be
-  treated case-insensitively and it should be obvious for the content it
-  represents, often being the name of the child project or the value given
-  to its top level :command:`project` command.
-
-  For well-known public projects, the name should generally be the official
-  name of the project.  Choosing an unusual name makes it unlikely that other
-  projects needing that same content will use the same name, leading to
-  the content being populated multiple times.
-
-  The ``<contentOptions>`` can be any of the download or update/patch options
-  that the :command:`FetchContent_Declare` command understands.
-
-  In most cases, ``<contentOptions>`` will just be a couple of options defining
-  the download method and method-specific details like a commit tag or archive
-  hash.  For example:
-
-  .. code-block:: cmake
-
-  CmDaB_declare (
-    UPNP
-    GIT_REPOSITORY https://github.com/pupnp/pupnp.git
-  )
-
-  In Addition ``CmDaB_declare()`` understands commands to limit the package to
-  certain plattforms. As the whole package is always in development, you can
-  always ask for new options on github, if you want something for your package
-  added.
-
-  Currently supported:
-    PLATFORMS - Use this to limit where your package is available in the form
-    like you would check for this plattform using if.
-
-      .. code-block:: cmake
-
-      PLATFORMS WIN32 - equals to if(${WIN32}) ....
-
-Populating The Content
-""""""""""""""""""""""
-
-.. command:: CmDaB_install
-
-  .. code-block:: cmake
-
-    CmDaB_install (<name>)
-
-  This function does the actual downloading step. It checks if the package is
-  available at all, and for your explicit plattform. If yes it will clone
-  the repository into _deps subfolder of your build-tree and runs the
-  CMakeLists.txt in there.
-
-  If your project needs some additional or optional features of the package,
-  just set the variables that are used by the project like you would do when
-  building it from the commandline before calling this function.
-
-  This function does nothing on success. If you order a non-existing package, or
-  one that doesn't work on your current plattform, this will be an error. If there
-  are problems while configuring the downloaded package, the CMakeLists.txt of this
-  package has to deal with it. If no error occurs, you can just use everything like
-  it would be in your source-tree.
-
-#]=======================================================================]
+#   CmDaB_Resolve(<Package>)
+#
+#     Resolves a package during find_package.
+#
+#     Behavior:
+#       1. Dispatches to <Package>_Handle_Find if present
+#       2. Otherwise uses CmDaB_Handle_Find_Generic
+#
+#
+# -----------------------------------------------------------------------------
+# Resolution Helpers
+# -----------------------------------------------------------------------------
+#
+#   CmDaB_Handle_Find_Generic(<Package>)
+#
+#     Generic fallback implementation.
+#
+#     Behavior:
+#       - Attempts to locate the package via find_package
+#       - Validates presence of at least one known target
+#       - Applies declared options and test configuration
+#       - Uses FetchContent if required
+#       - Applies declared alias mappings
+#
+#
+# -----------------------------------------------------------------------------
+# Prefix Handling
+# -----------------------------------------------------------------------------
+#
+#   CmDaB_Remove_Prefix()
+#   CmDaB_Add_Prefix()
+#
+#     Temporarily remove and re-add CmDaB search paths.
+#
+#     Required to avoid recursion when calling find_package from within
+#     the resolution logic.
+#
+#
+# -----------------------------------------------------------------------------
+# Package-specific Hooks
+# -----------------------------------------------------------------------------
+#
+#   <Package>_Handle_Find()
+#
+#     Optional override for packages requiring custom resolution behavior.
+#
+#     Responsibilities:
+#       - Define required targets (e.g. via components)
+#       - Attempt system resolution (respecting CmDaB_Always_Download)
+#       - Validate that required targets are present
+#       - Configure build options before FetchContent
+#       - Call FetchContent_MakeAvailable
+#       - Apply aliases as needed
+#
+#
+# -----------------------------------------------------------------------------
+# Global Options
+# -----------------------------------------------------------------------------
+#
+#   CmDaB_Always_Download
+#     If enabled, skips system discovery and always uses FetchContent
+#
+#   CmDaB_Build_Tests
+#     Default value for all declared TEST_OPTIONS
+#
+#   CmDaB_PACKAGE_DIR
+#     Path to an additional directory containing local packages or overrides
+#
+# -----------------------------------------------------------------------------
+# Notes
+# -----------------------------------------------------------------------------
+#
+# - All resolution happens during configure time
+# - find_package remains the only interface exposed to users
+# - Upstream targets are preserved; CmDaB only normalizes access
+#
+# =============================================================================
 
 cmake_minimum_required (VERSION 3.11)
-cmake_policy (SET CMP0047 NEW)
-set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set (CmDaB_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
-set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules)
-set (CmDaB_modules_path ${CmDaB_BASE_DIR}/modules PARENT_SCOPE)
-set (CmDaB_configs_path ${CmDaB_BASE_DIR}/configs)
-set (CmDaB_configs_path ${CmDaB_BASE_DIR}/configs PARENT_SCOPE)
-include (cmake/options.cmake)
 
-set (CmDaB_oVA
-	GIT_REPOSITORY			# The Address of the git repo as you would use it in FetchContent
-	GIT_TAG					# The tag or branch name to checkout
-	PARENT_SCOPE
-)
-
-set (CmDaB_mVA
-	ALIASES					#Aliases that are needed but not set by the source of the package
-	PLATFORMS				#The platforms where the package works or doesn't work
-	TESTS_DISABLE			#List of options that need to be set ti disable tests, if the package defaults to build them
-	TESTS_ENABLE			#List of options to enable tests in the package
-	GENERIC_OPTIONS_TRUE	#List of generic options to enable features that are usually used
-	GENERIC_OPTIONS_FALSE	#List of options that are usually not needed to be built
-	PARENT_SCOPE
-)
-
-include (FetchContent)
-
-function (CmDaB_declare package)
-	set (propertyName "CmDaB_${package}_savedDetails")
-
-	get_property (alreadyDefined GLOBAL
-		PROPERTY ${propertyName} DEFINED
-	)
-
-	if (NOT alreadyDefined)
-		define_property (GLOBAL PROPERTY ${propertyName}
-			BRIEF_DOCS "Internal package details for CmDaB"
-			FULL_DOCS  "Details used by CmDaB for managing ${package}"
-		)
-
-		set_property(GLOBAL
-			PROPERTY ${propertyName} ${ARGN}
-		)
-	endif()
-endfunction()
-
-#################################################################################
-# This function parses all options for the given package                        #
-# The keywords regarding package downloading are given back in the var pkg_info #
-# CmDaB specific keywords as listed above are in vars named CmDaB_${KEYWORD}    #
-#################################################################################
-function (CmDaB_get_package_info package)
-	foreach (optName IN LISTS CmDaB_oVA CmDaB_mVA)
-		unset (CmDaB_${package}_${optName} PARENT_SCOPE)
-	endforeach()
-
-	set (propertyName "CmDaB_${package}_savedDetails")
-
-	get_property (alreadyDefined GLOBAL
-		PROPERTY ${propertyName} DEFINED
-	)
-
-	if (NOT alreadyDefined)
-		message (FATAL_ERROR "Installation requested for not known package: ${package}")
-	endif()
-
-	get_property (contentDetails GLOBAL
-		PROPERTY ${propertyName}
-	)
-
-	unset (pkg_info)
-	cmake_parse_arguments (CmDaB "" "${CmDaB_oVA}" "${CmDaB_mVA}" ${contentDetails})
-
-	if (CmDaB_UNPARSED_ARGUMENTS)
-		message (FATAL_ERROR "Unhandled Statement in description of package: ${package}: ${CmDaB_UNPARSED_ARGUMENTS}")
-	elseif (CmDaB_KEYWORDS_MISSING_VALUES)
-		message (FATAL_ERROR "Keyword without value given in description of package: ${package}: ${CmDaB_KEYWORDS_MISSING_VALUES}")
-	endif()
-
-	foreach (optName IN LISTS CmDaB_oVA CmDaB_mVA)
-		if (optName STREQUAL "GIT_REPOSITORY")
-			list (APPEND pkg_info "GIT_REPOSITORY")
-			list (APPEND pkg_info ${CmDaB_${optName}})
-		elseif (optName STREQUAL "GIT_TAG")
-			list (APPEND pkg_info "GIT_TAG")
-			list (APPEND pkg_info ${CmDaB_${optName}})
-		elseif (CmDaB_${optName})
-			set (CmDaB_${package}_${optName} ${CmDaB_${optName}} PARENT_SCOPE)
-		endif()
-	endforeach()
-
-	if (NOT pkg_info)
-		message (FATAL_ERROR "No download informations given in description of package: ${package}")
-	endif()
-
-	set (pkg_info_${package} ${pkg_info} PARENT_SCOPE)
-endfunction()
-
-#################################################################################
-# Calls the systems find modules for the given package                          #
-# Only internal usage from our modules                                          #
-#################################################################################
-macro (CmDaB_include_orig module)
-	list (REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_modules_path}")
-	include (${module})
-	CmDaB_set_module_path()
-endmacro()
-
-#################################################################################
-# Helper to automate generic thing when packages are searched by config         #
-# Mostly it's the first and only line in our ${package}Config.cmake files       #
-#################################################################################
-macro (CmDaB_handle_config_search package)
-	cmake_policy (SET CMP0074 NEW)
-
-	if (NOT ${package}_DIR OR (${package}_DIR STREQUAL ${CmDaB_configs_path}))
-		unset (${package}_DIR CACHE)
-
-		find_package (${package}
-			QUIET
-			NO_PACKAGE_ROOT_PATH
-		)
-
-		if (NOT ${package}_DIR)
-			CmDaB_install (${package})
-		endif()
-
-		set (${package}_ROOT ${CmDaB_configs_path}
-			CACHE
-			STRING
-			"The Location of CmDaB package-config"
-			FORCE
-		)
-	endif()
-endmacro()
-
-macro (CmDaB_install package)
-	CmDaB_get_package_info (${package} pkg_info_${package})
-
-	if (CmDaB_PLATFORMS)
-		foreach (platform IN ITEMS ${CmDaB_${package}_PLATFORMS})
-			if (platform MATCHES "!(.*)")
-				if (${CMAKE_MATCH_1})
-					message (FATAL_ERROR "CmDaB requested package ${package} is limited to platforms: ${CmDaB_PLATFORMS}")
-				endif()
-			else()
-				if (NOT ${platform})
-					message (FATAL_ERROR "CmDaB requested package ${package} is limited to platforms: ${CmDaB_PLATFORMS}")
-				endif()
-			endif()
-		endforeach()
-	endif()
-
-	set (old_testing_value ${BUILD_TESTING})
-
-	get_property (bt_helpstring CACHE BUILD_TESTING
-		PROPERTY HELPSTRING
-	)
-
-	if (NOT CmDaB_${package}_TESTS_ENABLE AND NOT CmDaB_${package}_TESTS_DISABLE)
-		set (CmDaB_${package}_TESTS_ENABLE "BUILD_TESTING")
-		set (CmDaB_${package}_TESTING_DEFAULT_OPTION TRUE)
-
-		if (NOT DEFINED CmDaB_${package}_BUILD_TESTING_Old_State)
-			set (CmDaB_${package}_BUILD_TESTING ${CmDaB_Build_Tests}
-				CACHE BOOL
-				"BUILD_TESTING for ${package}"
-				FORCE
-			)
-		endif()
-	endif()
-
-	if (NOT CmDaB_${package}_DOWNLOADED)
-		CmDaB_Initialize_Options (${package})
-	endif()
-
-	CmDaB_Handle_Options (${package})
-
-	if (CmDaB_${package}_TESTING_DEFAULT_OPTION AND CmDaB_${package}_BUILD_TESTING)
-		set (BUILD_TESTING ON)
-	else()
-		set (BUILD_TESTING OFF)
-	endif()
-
-	FetchContent_Declare (CmDaB_${package}
-		"${pkg_info_${package}}"
-	)
-
-	if (EXISTS ${CmDaB_BASE_DIR}/scripts/${package}_preinstall.cmake)
-		include (${CmDaB_BASE_DIR}/scripts/${package}_preinstall.cmake)
-	endif()
-
-	if (NOT ${package}_FIND_QUIETLY AND NOT CmDaB_${package}_DOWNLOADED)
-		message(STATUS "Downloading ${package} ...")
-	endif()
-
-	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-		FetchContent_MakeAvailable (CmDaB_${package})
-	else()
-		if (NOT ${package_}_DOWNLOADED)
-			FetchContent_Populate (CmDaB_${package})
-		endif()
-
-		string (TOLOWER ${package} package_name)
-
-		add_subdirectory (CmDaB_${${package_name}_SOURCE_DIR}
-			CmDaB_${${package_name}_BINARY_DIR}
-		)
-	endif()
-
-	set (CmDaB_${package}_DOWNLOADED TRUE
-		CACHE
-		BOOL
-		"${package} was already downloaded"
-		FORCE
-	)
-
-	mark_as_advanced (CmDaB_${package}_DOWNLOADED)
-
-	set (${package}_FOUND TRUE
-		CACHE
-		STRING
-		"${package} will be build"
-		FORCE
-	)
-
-	set (BUILD_TESTING ${old_testing_value})
-
-	if (CmDaB_${package}_ALIASES)
-		foreach (item IN ITEMS ${CmDaB_${package}_ALIASES})
-			if (alias)
-				add_library (${alias} ALIAS ${item})
-				unset (alias)
-			else()
-				set (alias ${item})
-			endif()
-		endforeach()
-	endif()
-endmacro()
-
-#################################################################################
-# Sets the path where our ${package}Config.cmake files are found               #
-#################################################################################
-macro (CmDaB_set_config_path package)
-	set (${package}_ROOT ${CmDaB_configs_path}
-		CACHE
-		STRING
-		"The Location of CmDaB package-config"
-		FORCE
-	)
-endmacro()
-
-#################################################################################
-# Sets th path where our Find*.cmake files are found                            #
-#################################################################################
-macro (CmDaB_set_module_path)
-	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.15)
-		list (PREPEND CMAKE_MODULE_PATH ${CmDaB_modules_path})
-	else()
-		set (CMAKE_MODULE_PATH ${CmDaB_modules_path} "${CMAKE_MODULE_PATH}")
-	endif()
-endmacro()
-
-file (GLOB includes
-	packages/*.cmake
+option(CmDaB_Always_Download
+  "Always fetch dependencies instead of using system packages"
+  OFF
 )
 
 option (CmDaB_Build_Tests "Build Tests of all downloaded packages" OFF)
 
-foreach (pkg IN LISTS includes)
-	include (${pkg})
-endforeach()
+set(CmDaB_PACKAGE_DIR "" CACHE PATH
+  "Additional directories containing CmDaB package definitions"
+)
 
-if (NOT DEFINED CmDaB_Build_Tests_Old_State)
-	set (CmDaB_Build_Tests_Old_State ${CmDaB_Build_Tests}
-		CACHE INTERNAL
-		"Old State to see what has changed"
-		FORCE
-	)
+macro(CmDaB_Add_Prefix)
+  set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs")
+  set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules")
 
-	set (CmDaB_Build_Tests_Old_State_CHANGED FALSE
-		CACHE INTERNAL
-		"To track if global state changed"
-		FORCE
-	)
-elseif (NOT ${CmDaB_Build_Tests} STREQUAL ${CmDaB_Build_Tests_Old_State})
-	set (CmDaB_Build_Tests_Old_State ${CmDaB_Build_Tests}
-		CACHE INTERNAL
-		"Old State to see what has changed"
-		FORCE
-	)
+  list(PREPEND CMAKE_PREFIX_PATH "${CmDaB_CONFIG_DIR}")
+  list(PREPEND CMAKE_MODULE_PATH "${CmDaB_MODULE_DIR}")
+endmacro()
 
-	set (CmDaB_Build_Tests_Old_State_CHANGED TRUE
-		CACHE INTERNAL
-		"To track if global state changed"
-		FORCE
-	)
-else()
-	set (CmDaB_Build_Tests_Old_State_CHANGED FALSE
-		CACHE INTERNAL
-		"To track if global state changed"
-		FORCE
-	)
+function(CmDaB_Declare package)
+  set(CmDaB_FETCH_KEYS
+    GIT_REPOSITORY
+    GIT_TAG
+  )
+
+  set(CmDaB_META_KEYS
+    ALIASES
+    NO_STATIC
+    PLATFORMS
+    STATIC_SUFFIX
+    TEST_OPTIONS
+    OPTIONS
+  )
+
+  cmake_parse_arguments(
+    CmDaB
+    ""
+    "${CmDaB_FETCH_KEYS}"
+    "${CmDaB_META_KEYS}"
+    ${ARGN}
+  )
+
+  if(CmDaB_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR
+      "Unhandled argument in ${package}: ${CmDaB_UNPARSED_ARGUMENTS}")
+  endif()
+
+  if(CmDaB_KEYWORDS_MISSING_VALUES)
+    message(FATAL_ERROR
+      "Missing value in ${package}: ${CmDaB_KEYWORDS_MISSING_VALUES}")
+  endif()
+
+  set(fetch_args "")
+  foreach(k IN LISTS CmDaB_FETCH_KEYS)
+    if(CmDaB_${k})
+      list(APPEND fetch_args "${k}" ${CmDaB_${k}})
+    endif()
+  endforeach()
+
+  FetchContent_Declare(${package}
+    ${_fetch_args}
+  )
+
+  if(NOT DEFINED CmDaB_${package}_PLATFORMS)
+    CmDaB_Write_Config(${package})
+    CmDaB_Write_Find_Module(${package})
+  else()
+    foreach(_cond IN LISTS CmDaB_${package}_PLATFORMS)
+      if(${_cond})
+        CmDaB_Write_Config(${package})
+        CmDaB_Write_Find_Module(${package})
+        break()
+      endif()
+    endforeach()
+  endif()
+
+  if(DEFINED CMDAB_NO_STATIC)
+    set(_cmdab_${package}_STATIC_SUFFIX FALSE)
+  elseif(DEFINED CMDAB_STATIC_SUFFIX)
+    set(_cmdab_${package}_STATIC_SUFFIX "${CMDAB_STATIC_SUFFIX}")
+  else()
+    set(_cmdab_${package}_STATIC_SUFFIX "static")
+  endif()
+endfunction()
+
+function(CmDaB_Handle_Find_Generic package)
+  if(NOT CmDaB_Always_Download)
+    CmDaB_Remove_Prefix()
+
+    find_package(${package} QUIET)
+
+    CmDaB_Add_Prefix()
+
+    set(_ok FALSE)
+
+    if(TARGET ${package}::${package})
+      set(_ok TRUE)
+    endif()
+
+    if(NOT _ok)
+      get_property(_aliases GLOBAL PROPERTY CmDaB_${package}_ALIASES)
+
+      if(_aliases)
+        foreach(_alias _target IN LISTS _aliases)
+          if(TARGET ${_alias} OR TARGET ${_target})
+            set(_ok TRUE)
+            break()
+          endif()
+        endforeach()
+      endif()
+    endif()
+
+    if(_ok)
+      return()
+    endif()
+  endif()
+
+  get_property(_opts GLOBAL PROPERTY CmDaB_${package}_OPTIONS)
+
+  if(_opts)
+    foreach(_k _v IN LISTS _opts)
+      set(${_k} ${_v} CACHE BOOL "")
+    endforeach()
+  endif()
+
+  get_property(_tests GLOBAL PROPERTY CmDaB_${package}_TEST_OPTIONS)
+
+  if(_tests)
+    foreach(_opt IN LISTS _tests)
+      set(${_opt} ${CmDaB_Build_Tests} CACHE BOOL "")
+    endforeach()
+  endif()
+
+  FetchContent_MakeAvailable(${package})
+
+  get_property(_aliases GLOBAL PROPERTY CmDaB_${package}_ALIASES)
+
+  if(_aliases)
+    foreach(_alias _target IN LISTS _aliases)
+      if(NOT TARGET ${_alias} AND TARGET ${_target})
+        add_library(${_alias} ALIAS ${_target})
+      endif()
+    endforeach()
+  endif()
+
+  set(_suffix "${_cmdab_${package}_STATIC_SUFFIX}")
+
+  if(_suffix)
+    if(TARGET ${package}${_suffix}
+       AND NOT TARGET ${package}::${package}static)
+      add_library(${package}::${package}static ALIAS ${package}${_suffix})
+    endif()
+  endif()
+endfunction()
+
+function(CmDaB_Resolve package)
+  if(COMMAND ${package}_Handle_Find)
+    cmake_language(CALL ${package}_Handle_Find())
+    return()
+  endif()
+
+  CmDaB_Handle_Find_Generic(${package})
+endfunction()
+
+macro(CmDaB_Remove_Prefix)
+  set(_cmdab_saved_prefix "${CMAKE_PREFIX_PATH}")
+  set(_cmdab_saved_module "${CMAKE_MODULE_PATH}")
+
+  list(REMOVE_ITEM CMAKE_PREFIX_PATH "${CmDaB_CONFIG_DIR}")
+  list(REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_MODULE_DIR}")
+endmacro()
+
+function(CmDaB_Write_Config package)
+
+  set(_dir  "${CmDaB_CONFIG_DIR}/${package}")
+  set(_file "${_dir}/${package}Config.cmake")
+
+  file(MAKE_DIRECTORY "${_dir}")
+
+  if(EXISTS "${_file}")
+    return()
+  endif()
+
+  file(WRITE "${_file}" "
+# ============================================================
+#  Auto-generated by CmDaB for package: ${package}
+# ============================================================
+
+CmDaB_Resolve(${package})
+")
+endfunction()
+
+function(CmDaB_Write_Find_Module package)
+
+  set(_dir  "${CmDaB_MODULE_DIR}")
+  set(_file "${_dir}/Find${package}.cmake")
+
+  file(MAKE_DIRECTORY "${_dir}")
+
+  if(EXISTS "${_file}")
+    return()
+  endif()
+
+  file(WRITE "${_file}" "
+# ============================================================
+#  Auto-generated Find Module by CmDaB for package: ${package}
+# ============================================================
+
+# ---- warn about legacy usage ----
+message(DEPRECATION
+  \"CmDaB: 'Find${package}.cmake' was included directly.\n"
+  "Use 'find_package(${package})' instead.\"
+)
+
+# ---- delegate to config-based resolution ----
+find_package(${package} CONFIG QUIET)
+")
+endfunction()
+
+CmDaB_Add_Prefix()
+
+if(CmDaB_PACKAGE_DIR)
+  file(GLOB _cmdab_user_packages
+    "${CmDaB_PACKAGE_DIRS}/*.cmake"
+  )
+
+  foreach(_pkg IN LISTS _cmdab_user_packages)
+    include("${_pkg}")
+  endforeach()
 endif()
 
-CmDaB_set_module_path()
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+file(GLOB _cmdab_core_packages
+  "${CMAKE_CURRENT_LIST_DIR}/packages/*.cmake"
+)
+
+foreach(_pkg IN LISTS _cmdab_core_packages)
+  include("${_pkg}")
+endforeach()
