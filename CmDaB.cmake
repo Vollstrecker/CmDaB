@@ -1,15 +1,11 @@
 # This file is part of the CmDab Project.
 #
-# Copyright (c) 2021 Vollstrecker (werner@vollstreckernet.de)
+# Copyright (c) 2021-2026 Vollstrecker (github@vollstreckernet.de)
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 3as published by
-# the Free Software Foundation; of the License
-#
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, check
+# Licensed under the MIT License. See LICENSE file in the project for
+# full license information.
 # https://github.com/Vollstrecker/CmDaB/blob/main/LICENSE
+# --------------------------------------------------------------------
 
 #[=======================================================================[.rst:
 CmDaB.cmake
@@ -34,25 +30,23 @@ Find_Package (Git)
 cmake_dependent_option (DOWNLOAD_AND_BUILD_DEPS "Get all missing stuff" OFF ${Git_FOUND} OFF)
 
 if (DOWNLOAD_AND_BUILD_DEPS)
-	include (FetchContent)
+  include (FetchContent)
 
-	FetchContent_Declare (
-		CmDaB
-		GIT_REPOSITORY https://github.com/Vollstrecker/CmDaB.git
-		GIT_TAG main
-	)
+  FetchContent_Declare (
+    CmDaB
+    GIT_REPOSITORY https://github.com/Vollstrecker/CmDaB.git
+    GIT_TAG main)
 
-	FetchContent_GetProperties(CmDaB)
+  FetchContent_GetProperties(CmDaB)
 
-	if (NOT cmdab_POPULATED)
-		if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-			FetchContent_MakeAvailable (CmDaB)
-		else()
-			FetchContent_Populate (CmDaB)
+  if (NOT cmdab_POPULATED)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+      FetchContent_MakeAvailable (CmDaB)
+    else()
+      FetchContent_Populate (CmDaB)
 
-			add_subdirectory (${cmdab_SOURCE_DIR}
-				${cmdab_BINARY_DIR}
-			)
-		endif()
-	endif()
+      add_subdirectory (${cmdab_SOURCE_DIR}
+                        ${cmdab_BINARY_DIR})
+    endif()
+  endif()
 endif()
