@@ -129,9 +129,6 @@ set(CmDaB_PACKAGE_DIR "" CACHE PATH
 )
 
 macro(CmDaB_Add_Prefix)
-  set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs")
-  set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules")
-
   list(PREPEND CMAKE_PREFIX_PATH "${CmDaB_CONFIG_DIR}")
   list(PREPEND CMAKE_MODULE_PATH "${CmDaB_MODULE_DIR}")
 
@@ -338,6 +335,11 @@ message(DEPRECATION
 find_package(${package} CONFIG QUIET)
 ")
 endfunction()
+
+set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs")
+set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs" PARENT_SCOPE)
+set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules")
+set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules" PARENT_SCOPE)
 
 CmDaB_Add_Prefix()
 
