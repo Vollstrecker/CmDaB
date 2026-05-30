@@ -2,7 +2,7 @@ CmDaB_declare (
   PTHREADS4W
   GIT_REPOSITORY https://github.com/Vollstrecker/pthreads4w.git
   PLATFORMS MSVC
-  GIT_TAG main
+  GIT_TAG master
 )
 
 function(PTHREADS4W_Handle_Find)
