@@ -2,10 +2,10 @@ CmDaB_declare (
   PTHREADS4W
   GIT_REPOSITORY https://github.com/Vollstrecker/pthreads4w.git
   PLATFORMS MSVC
-  GIT_TAG rework
+  GIT_TAG master
 )
 
-function(GTest_Handle_Find)
+function(PTHREADS4W_Handle_Find)
   set(_need_C FALSE)
   set(_need_CE FALSE)
   set(_need_SE FALSE)
@@ -43,19 +43,14 @@ function(GTest_Handle_Find)
     endforeach()
   else()
     set(_need_C TRUE)
-    set(_need_CE TRUE)
-    set(_need_SE TRUE)
+    set(_need_CE FALSE)
+    set(_need_SE FALSE)
     set(_need_SHARED TRUE)
     set(_need_STATIC TRUE)
 
     list(APPEND _required_targets
       Threads::Shared
-      Threads::Static
-      Threads::CEShared
-      Threads::CEStatic
-      Threads::SEShared
-      Threads::SEStatic
-    )
+      Threads::Static    )
   endif()
 
   if(NOT CmDaB_Always_Download)

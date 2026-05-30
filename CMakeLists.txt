@@ -129,11 +129,11 @@ set(CmDaB_PACKAGE_DIR "" CACHE PATH
 )
 
 macro(CmDaB_Add_Prefix)
-  set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs")
-  set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules")
-
   list(PREPEND CMAKE_PREFIX_PATH "${CmDaB_CONFIG_DIR}")
   list(PREPEND CMAKE_MODULE_PATH "${CmDaB_MODULE_DIR}")
+
+  set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" PARENT_SCOPE)
+  set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)
 endmacro()
 
 function(CmDaB_Declare package)
@@ -151,12 +151,11 @@ function(CmDaB_Declare package)
     OPTIONS
   )
 
-  cmake_parse_arguments(
+  cmake_parse_arguments(PARSE_ARGV 1
     CmDaB
     ""
     "${CmDaB_FETCH_KEYS}"
     "${CmDaB_META_KEYS}"
-    ${ARGN}
   )
 
   if(CmDaB_UNPARSED_ARGUMENTS)
@@ -169,10 +168,9 @@ function(CmDaB_Declare package)
       "Missing value in ${package}: ${CmDaB_KEYWORDS_MISSING_VALUES}")
   endif()
 
-  set(fetch_args "")
   foreach(k IN LISTS CmDaB_FETCH_KEYS)
     if(CmDaB_${k})
-      list(APPEND fetch_args "${k}" ${CmDaB_${k}})
+      list(APPEND _fetch_args "${k}" ${CmDaB_${k}})
     endif()
   endforeach()
 
@@ -287,6 +285,7 @@ macro(CmDaB_Remove_Prefix)
 
   list(REMOVE_ITEM CMAKE_PREFIX_PATH "${CmDaB_CONFIG_DIR}")
   list(REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_MODULE_DIR}")
+  set(${CMAKE_FIND_PACKAGE_NAME}_DIR "")
 endmacro()
 
 function(CmDaB_Write_Config package)
@@ -335,6 +334,11 @@ message(DEPRECATION
 find_package(${package} CONFIG QUIET)
 ")
 endfunction()
+
+set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs")
+set(CmDaB_CONFIG_DIR "${CMAKE_BINARY_DIR}/cmdab/configs" PARENT_SCOPE)
+set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules")
+set(CmDaB_MODULE_DIR "${CMAKE_BINARY_DIR}/cmdab/modules" PARENT_SCOPE)
 
 CmDaB_Add_Prefix()
 
