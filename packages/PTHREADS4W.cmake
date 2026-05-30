@@ -5,7 +5,7 @@ CmDaB_declare (
   GIT_TAG main
 )
 
-function(GTest_Handle_Find)
+function(PTHREADS4W_Handle_Find)
   set(_need_C FALSE)
   set(_need_CE FALSE)
   set(_need_SE FALSE)
