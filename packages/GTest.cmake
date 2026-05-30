@@ -49,6 +49,20 @@ function(GTest_Handle_Find)
     )
   endif()
 
+  if(MSVC)
+    string(CONCAT _flags
+      " ${CMAKE_C_FLAGS}"
+      " ${CMAKE_C_FLAGS_DEBUG}"
+      " ${CMAKE_C_FLAGS_RELEASE}"
+      " ${CMAKE_CXX_FLAGS}"
+      " ${CMAKE_CXX_FLAGS_DEBUG}"
+      " ${CMAKE_CXX_FLAGS_RELEASE}")
+
+    if(_flags MATCHES "/MD")
+      set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    endif()
+  endif()
+
   if(NOT CmDaB_Always_Download)
 
     CmDaB_Remove_Prefix()
