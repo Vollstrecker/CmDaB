@@ -151,12 +151,11 @@ function(CmDaB_Declare package)
     OPTIONS
   )
 
-  cmake_parse_arguments(
+  cmake_parse_arguments(PARSE_ARGV 1
     CmDaB
     ""
     "${CmDaB_FETCH_KEYS}"
     "${CmDaB_META_KEYS}"
-    ${ARGN}
   )
 
   if(CmDaB_UNPARSED_ARGUMENTS)
