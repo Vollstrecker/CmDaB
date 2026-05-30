@@ -168,10 +168,9 @@ function(CmDaB_Declare package)
       "Missing value in ${package}: ${CmDaB_KEYWORDS_MISSING_VALUES}")
   endif()
 
-  set(fetch_args "")
   foreach(k IN LISTS CmDaB_FETCH_KEYS)
     if(CmDaB_${k})
-      list(APPEND fetch_args "${k}" ${CmDaB_${k}})
+      list(APPEND _fetch_args "${k}" ${CmDaB_${k}})
     endif()
   endforeach()
 
