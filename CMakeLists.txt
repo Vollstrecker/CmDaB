@@ -287,6 +287,7 @@ macro(CmDaB_Remove_Prefix)
 
   list(REMOVE_ITEM CMAKE_PREFIX_PATH "${CmDaB_CONFIG_DIR}")
   list(REMOVE_ITEM CMAKE_MODULE_PATH "${CmDaB_MODULE_DIR}")
+  set(${CMAKE_FIND_PACKAGE_NAME}_DIR "")
 endmacro()
 
 function(CmDaB_Write_Config package)
