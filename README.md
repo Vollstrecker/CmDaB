@@ -15,6 +15,66 @@ CmDaB augments CMake’s dependency resolution process:
 - CmDaB does not attempt to abstract or normalize upstream libraries beyond
 basic target normalization.
 
+## Design
+
+CmDaB extends the standard `find_package()` workflow by transparently resolving
+dependencies from the system or building them from source when necessary.
+
+Unlike traditional package managers, CmDaB does not introduce a separate
+dependency graph or workflow. Dependencies become part of the normal CMake
+target graph.
+
+This has a key consequence:
+
+- Dependencies and project code can be built in parallel
+- No "build dependencies first" phase is required
+- Incremental builds naturally include dependencies
+
+Example:
+
+```cmake
+find_package(Foo)
+```
+
+With CmDaB, this will:
+
+1. Use a system installation if available (and wanted)
+2. Otherwise build the package from source using FetchContent
+
+No changes to the caller are required.
+
+## Comparison
+| Tool    | Integration Model        | Workflow Required | Build Model                | Parallelization | Uses System Libraries | Builds from Source | Transparent Fallback | External Build Tools |
+|---------|--------------------------|-------------------|----------------------------|-----------------|-----------------------|--------------------|----------------------|----------------------|
+| CmDaB   | `find_package` extension | no                | integrated build graph     | high            | yes                   | yes                | yes                  | minimal              |
+| CMake   | explicit `find_package`  | no                | project only               | limited         | yes                   | no                 | no                   | minimal              |
+| Meson   | built-in dependency API  | yes               | integrated build graph     | high            | yes                   | yes (fallback)     | no (explicit)        | sometimes            |
+| vcpkg   | toolchain-based          | yes               | dependencies first         | limited         | optional              | yes                | n/a                  | often                |
+| Conan   | external manager         | yes               | dependencies first         | limited         | optional              | yes                | n/a                  | often                |
+
+### Key Difference
+Many package managers introduce additional build-time dependencies
+for building libraries (e.g. Python, Perl, custom scripts).
+
+CmDaB operates purely within the CMake ecosystem:
+
+- Dependencies are expected to be CMake-based
+- Build requirements become part of the same CMake build graph
+- No separate build toolchain is required
+
+This avoids the need to install additional tools just to build
+dependencies.
+
+CmDaB integrates dependency resolution directly into the existing
+CMake `find_package()` workflow.
+
+Unlike Meson, which requires explicit fallback definitions, CmDaB
+applies this behavior transparently without any changes to the caller.
+
+Unlike traditional package managers (vcpkg, Conan), dependencies are
+not built in a separate phase, but are part of the normal CMake build
+graph. This allows full parallelization
+
 ## Usage
 CmDaB can be integrated in two ways:
 
@@ -155,3 +215,15 @@ It provides:
 
 ## License
 See the LICENSE file for details.
+
+## Future Direction
+CmDaB can optionally cache built dependencies locally.
+
+After an initial build from source, dependencies can be reused in subsequent builds,
+combining the benefits of source-based builds with binary reuse.
+
+This enables:
+
+- Reproducible builds without a central registry
+- Fast rebuilds after initial setup
+- No additional package manager workflow
